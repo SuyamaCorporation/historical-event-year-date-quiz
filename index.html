@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historical Event Year & Date Quiz Challenge</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+  <header class="bg-amber-800 shadow-lg py-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+    <h1 class="text-2xl font-bold tracking-wide text-amber-100">Historical Year & Date Quiz</h1>
+    <div class="flex gap-4 text-sm">
+      <span class="bg-amber-700 rounded-full px-3 py-1">Streak: <strong id="streakDisplay">0</strong></span>
+      <span class="bg-amber-700 rounded-full px-3 py-1">Score: <strong id="scoreDisplay">0</strong></span>
+      <span class="bg-amber-700 rounded-full px-3 py-1">Q: <strong id="qNumDisplay">0</strong>/<strong id="qTotalDisplay">0</strong></span>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col items-center justify-start p-4 gap-6 max-w-2xl mx-auto w-full">
+    <!-- Filters -->
+    <section class="w-full bg-gray-800 rounded-xl p-4" aria-label="Quiz settings">
+      <div class="flex flex-wrap gap-3 items-center justify-between">
+        <div>
+          <label for="categoryFilter" class="text-sm font-semibold text-amber-300 mr-2">Category:</label>
+          <select id="categoryFilter" class="bg-gray-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="all">All Eras</option>
+            <option value="ancient">Ancient (&lt;500 CE)</option>
+            <option value="medieval">Medieval (500–1500)</option>
+            <option value="modern">Modern (1500–1900)</option>
+            <option value="20th">20th Century (1900–2000)</option>
+          </select>
+        </div>
+        <div>
+          <label for="difficultyFilter" class="text-sm font-semibold text-amber-300 mr-2">Difficulty:</label>
+          <select id="difficultyFilter" class="bg-gray-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="all">All</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <button id="startBtn" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-5 py-2 rounded-lg transition" aria-label="Start quiz">Start Quiz</button>
+      </div>
+    </section>
+
+    <!-- Quiz card -->
+    <section id="quizCard" class="w-full hidden" aria-live="polite">
+      <div class="bg-gray-800 rounded-xl p-6 shadow-xl">
+        <div class="flex justify-between text-xs text-gray-400 mb-3">
+          <span id="categoryBadge" class="bg-amber-900 text-amber-200 px-2 py-0.5 rounded-full"></span>
+          <span id="diffBadge" class="bg-gray-700 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <p id="questionText" class="text-lg font-semibold mb-6 leading-relaxed"></p>
+        <div id="choicesGrid" class="grid grid-cols-2 gap-3" role="list"></div>
+        <div id="feedbackBox" class="mt-5 hidden rounded-lg p-4 text-sm font-medium"></div>
+        <button id="nextBtn" class="mt-4 hidden bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-2 rounded-lg transition" aria-label="Next question">Next →</button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="resultsCard" class="w-full hidden" aria-live="polite">
+      <div class="bg-gray-800 rounded-xl p-6 shadow-xl text-center">
+        <h2 class="text-2xl font-bold text-amber-300 mb-2">Quiz Complete!</h2>
+        <p id="resultSummary" class="text-lg mb-4"></p>
+        <div id="wrongAnswerDeck" class="text-left mb-4"></div>
+        <button id="retryBtn" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-6 py-2 rounded-lg transition" aria-label="Review wrong answers">Review Wrong Answers</button>
+        <button id="restartBtn" class="ml-3 bg-gray-600 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-lg transition" aria-label="Start new quiz">New Quiz</button>
+      </div>
+    </section>
+
+    <!-- Start screen -->
+    <section id="startScreen" class="w-full text-center text-gray-400 py-8">
+      <p class="text-lg">Select a category and difficulty, then press <strong class="text-amber-300">Start Quiz</strong>.</p>
+    </section>
+  </main>
+
+<script>
+const QUESTIONS = [
+  // Ancient
+  {q:"In what year did Julius Caesar cross the Rubicon River?",a:"49 BCE",choices:["49 BCE","44 BCE","55 BCE","31 BCE"],cat:"ancient",diff:"medium"},
+  {q:"The Great Pyramid of Giza was completed around which year?",a:"2560 BCE",choices:["2560 BCE","3100 BCE","1800 BCE","2000 BCE"],cat:"ancient",diff:"easy"},
+  {q:"Athens defeated the Persian fleet in the Battle of Salamis in which year?",a:"480 BCE",choices:["480 BCE","490 BCE","450 BCE","510 BCE"],cat:"ancient",diff:"hard"},
+  {q:"The city of Rome was traditionally founded in which year?",a:"753 BCE",choices:["753 BCE","700 BCE","509 BCE","800 BCE"],cat:"ancient",diff:"medium"},
+  {q:"Alexander the Great died in which year?",a:"323 BCE",choices:["323 BCE","356 BCE","330 BCE","310 BCE"],cat:"ancient",diff:"medium"},
+  {q:"The Western Roman Empire fell in which year?",a:"476 CE",choices:["476 CE","410 CE","395 CE","500 CE"],cat:"ancient",diff:"easy"},
+  {q:"Confucius was born around which year?",a:"551 BCE",choices:["551 BCE","500 BCE","479 BCE","600 BCE"],cat:"ancient",diff:"hard"},
+  {q:"The Persian Wars ended roughly in which year?",a:"449 BCE",choices:["449 BCE","490 BCE","479 BCE","420 BCE"],cat:"ancient",diff:"hard"},
+  {q:"The Library of Alexandria was founded around which year?",a:"283 BCE",choices:["283 BCE","350 BCE","200 BCE","100 BCE"],cat:"ancient",diff:"hard"},
+  {q:"Julius Caesar was assassinated in which year?",a:"44 BCE",choices:["44 BCE","49 BCE","31 BCE","37 BCE"],cat:"ancient",diff:"easy"},
+
+  // Medieval
+  {q:"The Norman Conquest of England occurred in which year?",a:"1066",choices:["1066","1086","1042","1100"],cat:"medieval",diff:"easy"},
+  {q:"Magna Carta was signed in which year?",a:"1215",choices:["1215","1189","1265","1300"],cat:"medieval",diff:"easy"},
+  {q:"The Black Death reached Europe around which year?",a:"1347",choices:["1347","1320","1380","1400"],cat:"medieval",diff:"medium"},
+  {q:"The First Crusade began in which year?",a:"1095",choices:["1095","1099","1100","1080"],cat:"medieval",diff:"medium"},
+  {q:"Constantinople fell to Ottoman forces in which year?",a:"1453",choices:["1453","1441","1480","1400"],cat:"medieval",diff:"easy"},
+  {q:"Joan of Arc was burned at the stake in which year?",a:"1431",choices:["1431","1421","1440","1415"],cat:"medieval",diff:"medium"},
+  {q:"The Hundred Years' War began in which year?",a:"1337",choices:["1337","1350","1320","1380"],cat:"medieval",diff:"hard"},
+  {q:"Marco Polo returned to Venice from China around which year?",a:"1295",choices:["1295","1271","1310","1280"],cat:"medieval",diff:"hard"},
+  {q:"The Mongol Empire reached its peak size in roughly which decade?",a:"1270s",choices:["1270s","1220s","1300s","1250s"],cat:"medieval",diff:"hard"},
+  {q:"The Battle of Hastings took place in which year?",a:"1066",choices:["1066","1070","1064","1086"],cat:"medieval",diff:"easy"},
+
+  // Modern
+  {q:"Christopher Columbus first reached the Americas in which year?",a:"1492",choices:["1492","1487","1500","1510"],cat:"modern",diff:"easy"},
+  {q:"The Protestant Reformation began with Luther's theses in which year?",a:"1517",choices:["1517","1521","1500","1530"],cat:"modern",diff:"medium"},
+  {q:"The English Civil War began in which year?",a:"1642",choices:["1642","1651","1620","1660"],cat:"modern",diff:"medium"},
+  {q:"The French Revolution began in which year?",a:"1789",choices:["1789","1793","1776","1800"],cat:"modern",diff:"easy"},
+  {q:"The Thirty Years' War ended in which year?",a:"1648",choices:["1648","1618","1660","1640"],cat:"modern",diff:"medium"},
+  {q:"The printing press was invented by Gutenberg around which year?",a:"1450",choices:["1450","1430","1500","1470"],cat:"modern",diff:"easy"},
+  {q:"The American Declaration of Independence was signed in which year?",a:"1776",choices:["1776","1783","1770","1789"],cat:"modern",diff:"easy"},
+  {q:"Napoleon was defeated at Waterloo in which year?",a:"1815",choices:["1815","1812","1820","1807"],cat:"modern",diff:"medium"},
+  {q:"The Industrial Revolution began in Britain in roughly which decade?",a:"1760s",choices:["1760s","1780s","1740s","1800s"],cat:"modern",diff:"hard"},
+  {q:"The Spanish Armada was defeated in which year?",a:"1588",choices:["1588","1571","1600","1580"],cat:"modern",diff:"medium"},
+
+  // 20th Century
+  {q:"World War I began in which year?",a:"1914",choices:["1914","1916","1912","1918"],cat:"20th",diff:"easy"},
+  {q:"The Russian Revolution occurred in which year?",a:"1917",choices:["1917","1919","1905","1921"],cat:"20th",diff:"easy"},
+  {q:"The United Nations was founded in which year?",a:"1945",choices:["1945","1941","1948","1950"],cat:"20th",diff:"easy"},
+  {q:"Neil Armstrong walked on the Moon in which year?",a:"1969",choices:["1969","1967","1972","1971"],cat:"20th",diff:"easy"},
+  {q:"The Berlin Wall fell in which year?",a:"1989",choices:["1989","1991","1987","1990"],cat:"20th",diff:"easy"},
+  {q:"The atomic bombs were dropped on Japan in which year?",a:"1945",choices:["1945","1944","1946","1943"],cat:"20th",diff:"medium"},
+  {q:"The Korean War ended in which year?",a:"1953",choices:["1953","1950","1955","1960"],cat:"20th",diff:"medium"},
+  {q:"The Cuban Missile Crisis occurred in which year?",a:"1962",choices:["1962","1960","1964","1958"],cat:"20th",diff:"medium"},
+  {q:"India gained independence from Britain in which year?",a:"1947",choices:["1947","1945","1950","1942"],cat:"20th",diff:"easy"},
+  {q:"The Chernobyl nuclear disaster occurred in which year?",a:"1986",choices:["1986","1984","1989","1982"],cat:"20th",diff:"medium"},
+  {q:"World War II ended in Europe (V-E Day) in which year?",a:"1945",choices:["1945","1944","1946","1943"],cat:"20th",diff:"easy"},
+  {q:"The first iPhone was released in which year?",a:"2007",choices:["2007","2005","2009","2003"],cat:"20th",diff:"easy"},
+];
+
+let state = {
+  pool: [],
+  idx: 0,
+  score: 0,
+  streak: 0,
+  answered: false,
+  wrongAnswers: [],
+  reviewMode: false,
+};
+
+function filteredPool() {
+  const cat = document.getElementById('categoryFilter').value;
+  const diff = document.getElementById('difficultyFilter').value;
+  return QUESTIONS.filter(q =>
+    (cat === 'all' || q.cat === cat) &&
+    (diff === 'all' || q.diff === diff)
+  );
+}
+
+function shuffle(arr) {
+  return arr.slice().sort(() => Math.random() - 0.5);
+}
+
+function startQuiz(reviewPool) {
+  state.pool = reviewPool || shuffle(filteredPool());
+  if (state.pool.length === 0) {
+    alert('No questions match your filters. Try changing category or difficulty.');
+    return;
+  }
+  state.idx = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.answered = false;
+  state.wrongAnswers = [];
+  state.reviewMode = !!reviewPool;
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('resultsCard').classList.add('hidden');
+  document.getElementById('quizCard').classList.remove('hidden');
+  updateHUD();
+  renderQuestion();
+}
+
+function updateHUD() {
+  document.getElementById('streakDisplay').textContent = state.streak;
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('qNumDisplay').textContent = state.idx + 1;
+  document.getElementById('qTotalDisplay').textContent = state.pool.length;
+}
+
+function renderQuestion() {
+  const q = state.pool[state.idx];
+  state.answered = false;
+  document.getElementById('questionText').textContent = q.q;
+  const catLabels = {ancient:'Ancient',medieval:'Medieval',modern:'Modern (1500-1900)',  '20th':'20th Century'};
+  document.getElementById('categoryBadge').textContent = catLabels[q.cat] || q.cat;
+  document.getElementById('diffBadge').textContent = q.diff.charAt(0).toUpperCase() + q.diff.slice(1);
+  document.getElementById('feedbackBox').classList.add('hidden');
+  document.getElementById('nextBtn').classList.add('hidden');
+  updateHUD();
+
+  const grid = document.getElementById('choicesGrid');
+  grid.innerHTML = '';
+  shuffle(q.choices).forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className = 'bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg text-sm font-medium transition text-left border-2 border-transparent';
+    btn.setAttribute('role', 'listitem');
+    btn.setAttribute('aria-label', 'Answer: ' + choice);
+    btn.textContent = choice;
+    btn.addEventListener('click', () => handleAnswer(choice, btn));
+    grid.appendChild(btn);
+  });
+}
+
+function handleAnswer(choice, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = state.pool[state.idx];
+  const correct = choice === q.a;
+  const fb = document.getElementById('feedbackBox');
+  fb.classList.remove('hidden');
+
+  const allBtns = document.getElementById('choicesGrid').querySelectorAll('button');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === q.a) {
+      b.classList.add('border-green-400', 'bg-green-800', 'text-green-100');
+    }
+  });
+
+  if (correct) {
+    state.score++;
+    state.streak++;
+    btn.classList.add('border-green-400', 'bg-green-700', 'text-green-100');
+    fb.className = 'mt-5 rounded-lg p-4 text-sm font-medium bg-green-900 text-green-200';
+    fb.textContent = '✓ Correct! Great job.';
+  } else {
+    state.streak = 0;
+    btn.classList.add('border-red-400', 'bg-red-900', 'text-red-100');
+    fb.className = 'mt-5 rounded-lg p-4 text-sm font-medium bg-red-900 text-red-200';
+    fb.textContent = '✗ Incorrect. The correct answer was: ' + q.a;
+    state.wrongAnswers.push(q);
+  }
+  updateHUD();
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion() {
+  state.idx++;
+  if (state.idx >= state.pool.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('quizCard').classList.add('hidden');
+  const res = document.getElementById('resultsCard');
+  res.classList.remove('hidden');
+  const pct = Math.round((state.score / state.pool.length) * 100);
+  document.getElementById('resultSummary').textContent =
+    `You scored ${state.score} / ${state.pool.length} (${pct}%)` + (state.reviewMode ? ' in review mode.' : '.');
+
+  const deck = document.getElementById('wrongAnswerDeck');
+  deck.innerHTML = '';
+  if (state.wrongAnswers.length > 0) {
+    const h = document.createElement('h3');
+    h.className = 'font-bold text-amber-300 mb-2';
+    h.textContent = 'Review — Questions You Missed:';
+    deck.appendChild(h);
+    state.wrongAnswers.forEach(q => {
+      const div = document.createElement('div');
+      div.className = 'bg-gray-700 rounded p-3 mb-2 text-sm';
+      const qp = document.createElement('p');
+      qp.className = 'font-medium mb-1';
+      qp.textContent = q.q;
+      const ap = document.createElement('p');
+      ap.className = 'text-green-300';
+      ap.textContent = 'Answer: ' + q.a;
+      div.appendChild(qp);
+      div.appendChild(ap);
+      deck.appendChild(div);
+    });
+    document.getElementById('retryBtn').classList.remove('hidden');
+  } else {
+    document.getElementById('retryBtn').classList.add('hidden');
+    const p = document.createElement('p');
+    p.className = 'text-green-400 font-semibold mb-2';
+    p.textContent = 'Perfect score! No wrong answers to review.';
+    deck.appendChild(p);
+  }
+}
+
+document.getElementById('startBtn').addEventListener('click', () => startQuiz(null));
+document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+document.getElementById('retryBtn').addEventListener('click', () => startQuiz(state.wrongAnswers));
+document.getElementById('restartBtn').addEventListener('click', () => {
+  document.getElementById('resultsCard').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
